@@ -2149,10 +2149,10 @@ function _renderUserDropdown() {
     if (!state.menuOpen) return '';
     return `
         <div style="position:fixed;top:70px;right:16px;z-index:9999" class="w-56 bg-white rounded-xl shadow-2xl py-2">
-            <div class="px-4 py-2 border-b user-session-badge">
-                <p class="session-label">Sesión activa</p>
-                <p class="session-email truncate" title="${escapeHtml(state.user.email)}">${escapeHtml(state.user.email)}</p>
-            </div>
+           <div class="px-4 py-2 border-b user-session-badge">
+          <p class="session-label">Sesión activa</p>
+          <p class="truncate" style="font-size:13px; color:#4c1d95; font-weight:800;" title="${escapeHtml(state.user.email)}">${escapeHtml(state.user.email)}</p>
+           </div>
             <button id="logout" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
             </button>
