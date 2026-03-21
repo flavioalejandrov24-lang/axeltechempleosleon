@@ -1009,7 +1009,7 @@ textarea { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 .user-session-badge { background: #f8f7ff; }
 .session-label { font-size: 11px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 /* CAMBIO: color del email en el badge de sesión del login — ahora púrpura fuerte y visible */
-.session-email { font-size: 13px; color: var(--purple-1); font-weight: 700; }
+.session-email { font-size: 13px; color: var(--purple-dark-2); font-weight: 700; }
 
 /* ==================== BANNER SLIDESHOW ==================== */
 .banner-section {
@@ -1735,7 +1735,7 @@ async function handleSaveVacancy(e) {
     if (!state.user?.id) { showModal('error', 'Sesión requerida', 'Inicia sesión para publicar'); return; }
 
     if (!state.formData.imageBase64) {
-        state.formData.imageBase64 = 'https://github.com/Compualextech24/empleosdeleongtoaxel/main/SINFOTO.jpg';
+        state.formData.imageBase64 = 'SINFOTO.jpg';
     }
 
     const missingFields = [];
@@ -2441,7 +2441,7 @@ function renderDashboard() {
         <main class="max-w-7xl mx-auto px-4 py-8">
             ${userVacancies.length > 0 ? `
                 <section class="mb-8">
-                    <h2 class="text-2xl font-black mb-6 dashboard-section-title"><i class="fas fa-briefcase text-purple-600"></i> Mis Vacantes</h2>
+                    <h2 class="text-2xl font-black mb-6 dashboard-section-title"><i class="fas fa-briefcase" style="color: var(--purple-xlight)"></i> Mis Vacantes</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         ${userVacancies.map(v => renderVacancyCard(v, true)).join('')}
                     </div>
@@ -2586,7 +2586,7 @@ function renderForm() {
                         <label>Imagen</label>
                         <div class="image-upload-area has-image" id="image-upload-area">
                             <div class="image-preview-container">
-                                <img src="${state.formData.imageBase64 || 'https://raw.githubusercontent.com/Compualextech24/empleosdeleongtoaxel/main/SINFOTO.jpg'}" alt="Vista previa">
+                                <img src="${state.formData.imageBase64 || 'SINFOTO.jpg'}" alt="Vista previa">
                             </div>
                         </div>
                         <p id="img-upload-hint" style="text-align:center;margin-top:8px;font-size:13px;font-weight:600;color:#1d4ed8;cursor:pointer;text-decoration:underline;letter-spacing:0.01em;">
