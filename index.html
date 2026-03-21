@@ -11,7 +11,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="faviconempleos.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome con preconnect para carga más rápida -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -113,7 +112,6 @@ body {
     0%, 100% { transform: translateX(0); }
     50%       { transform: translateX(5px); }
 }
-/* OPT: shimmerLight y cardShimmer eran idénticos — unificados en uno solo */
 @keyframes shimmer {
     0%   { left: -100%; opacity: 0; }
     10%  { opacity: 1; }
@@ -162,7 +160,6 @@ body {
 .btn-secondary { background: var(--gray-200); color: var(--gray-700); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .btn-secondary:hover:not(:disabled) { background: var(--gray-300); }
 
-/* OPT: .btn-outline y .btn-edit eran idénticos — fusionados */
 .btn-outline, .btn-edit {
     background: var(--grad-blue);
     color: white;
@@ -175,7 +172,6 @@ body {
     box-shadow: 0 8px 20px rgba(59,130,246,0.45);
 }
 
-/* OPT: .btn-save y .btn-new-vacancy comparten base, sólo padding difiere */
 .btn-save, .btn-new-vacancy {
     background: var(--grad-green-save);
     color: white;
@@ -295,7 +291,6 @@ body {
 .btn-see-all:hover { background: var(--white-32); border-color: rgba(255,255,255,0.7); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
 
 /* ==================== BOTONES RETROCESO ==================== */
-/* OPT: base compartida, variantes sólo sobreescriben lo que cambia */
 .back-btn-fixed, .back-btn-inheader, .btn-back {
     display: inline-flex;
     align-items: center;
@@ -366,7 +361,9 @@ header.top-header {
 header.top-header > * { position: relative; z-index: 2; }
 header.top-header h1 { color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 header.top-header p { color: rgba(255,255,255,0.85); }
-header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
+
+/* ==================== CAMBIO 1: Título centrado y tamaño aumentado ==================== */
+header.top-header .header-title-block h1 { font-size: 1.5rem !important; }
 
 .header-action-buttons { display: flex; gap: 12px; align-items: center; }
 .dashboard-section-title { color: white !important; }
@@ -374,10 +371,12 @@ header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
 .header-title-block {
     display: flex;
     flex-direction: column;
+    /* CAMBIO 1: centrado completo */
     align-items: center;
     text-align: center;
     justify-content: center;
     min-width: 0;
+    flex: 1; /* ocupa el espacio disponible entre los botones */
 }
 .header-title-block h1 {
     white-space: normal;
@@ -388,6 +387,10 @@ header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.25;
+    text-align: center;
+}
+.header-title-block p {
+    text-align: center;
 }
 
 /* ==================== LOGO EN LOGIN ==================== */
@@ -399,7 +402,6 @@ header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
     position: relative;
     overflow: hidden;
 }
-/* OPT: reutiliza animación "shimmer" unificada */
 .login-header-wrapper::after {
     content: '';
     position: absolute;
@@ -595,7 +597,6 @@ header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
 .modal-header .header-text p  { font-size: 14px; color: var(--gray-500); margin: 0; }
 .modal-header .header-text    { flex: 1; }
 
-/* OPT: success y question comparten el mismo estilo — fusionados */
 .modal-header-success, .modal-header-question { background: rgba(34,197,94,0.15); border-bottom: 1px solid rgba(34,197,94,0.25); }
 .modal-header-error   { background: rgba(239,68,68,0.15);  border-bottom: 1px solid rgba(239,68,68,0.25); }
 .modal-header-warning { background: rgba(245,158,11,0.15); border-bottom: 1px solid rgba(245,158,11,0.25); }
@@ -791,7 +792,6 @@ textarea { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     pointer-events: none;
     z-index: 1;
 }
-/* OPT: reutiliza animación "shimmer" unificada */
 .category-card-v2::after {
     content: '';
     position: absolute;
@@ -1008,7 +1008,6 @@ textarea { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 /* ==================== USER SESSION BADGE ==================== */
 .user-session-badge { background: #f8f7ff; }
 .session-label { font-size: 11px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-/* CAMBIO: color del email en el badge de sesión del login — ahora púrpura fuerte y visible */
 .session-email { font-size: 13px; color: var(--purple-dark-2); font-weight: 700; }
 
 /* ==================== BANNER SLIDESHOW ==================== */
@@ -1055,7 +1054,6 @@ textarea { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     <div id="modal-root"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- html2canvas cargado con defer para no bloquear el render inicial -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
     <script>
@@ -1657,7 +1655,6 @@ function handleAcceptTerms() {
 }
 
 // ==================== VACANTES ====================
-// OPT: caché simple — evita recargar si los datos tienen menos de 30s de antigüedad
 let _vacanciesLastFetch = 0;
 
 async function loadVacancies(forceRefresh = false) {
@@ -1788,7 +1785,7 @@ async function handleSaveVacancy(e) {
         state.editingVacancy = null;
         resetJobForm();
         clearAIData();
-        _vacanciesLastFetch = 0; // fuerza recarga tras guardar
+        _vacanciesLastFetch = 0;
         await loadVacancies(true);
         clearTimeout(safetyTimer);
         hideLoading();
@@ -2144,15 +2141,14 @@ async function downloadCard(btn, vacancyId) {
 }
 
 // ==================== RENDER — HELPER: Menú de usuario ====================
-// OPT: el dropdown se generaba en 3 lugares distintos — ahora es una sola función
 function _renderUserDropdown() {
     if (!state.menuOpen) return '';
     return `
-        <div style="position:fixed;top:70px;right:16px;z-index:9999" class="w-56 bg-white rounded-xl shadow-2xl py-2">
-           <div class="px-4 py-2 border-b user-session-badge">
-          <p class="session-label">Sesión activa</p>
-          <p class="truncate" style="font-size:13px; color:#4c1d95; font-weight:800;" title="${escapeHtml(state.user.email)}">${escapeHtml(state.user.email)}</p>
-           </div>
+        <div id="user-dropdown" style="position:fixed;top:70px;right:16px;z-index:9999" class="w-56 bg-white rounded-xl shadow-2xl py-2">
+            <div class="px-4 py-2 border-b user-session-badge">
+                <p class="session-label">Sesión activa</p>
+                <p class="truncate" style="font-size:13px;color:#4c1d95;font-weight:800;" title="${escapeHtml(state.user.email)}">${escapeHtml(state.user.email)}</p>
+            </div>
             <button id="logout" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
             </button>
@@ -2333,12 +2329,14 @@ function renderCategories() {
     <div class="categories-screen-bg">
         <header class="bg-white shadow-lg sticky top-0 z-50 top-header">
             <div class="max-w-7xl mx-auto px-4 py-4">
-                <div class="flex justify-between items-center">
+                <!-- CAMBIO 1: layout flex con título centrado -->
+                <div class="flex items-center justify-between">
+                    <div style="min-width:80px;"></div>
                     <div class="header-title-block">
                         <h1 class="text-2xl font-black">Empleos León GTO</h1>
                         <p class="text-sm">${totalVacancies} vacante${totalVacancies !== 1 ? 's' : ''} disponible${totalVacancies !== 1 ? 's' : ''}</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2" style="min-width:80px;justify-content:flex-end;">
                         ${state.isGuest ? `
                             <span class="guest-badge" style="font-size:11px;padding:5px 9px;"><i class="fas fa-user"></i> Invitado</span>
                             <button id="go-login" class="btn btn-outline" style="padding:7px 10px;font-size:12px;"><i class="fas fa-sign-in-alt"></i> Sesión</button>
@@ -2360,15 +2358,12 @@ function renderCategories() {
         </div>
 
         <main class="max-w-5xl mx-auto px-4 pt-6 pb-10" style="background:#fff;">
-
-            <!-- BANNER: el botón "Próximamente" ha sido eliminado definitivamente -->
             <div class="banner-section fade-in">
                 <div class="banner-slider-wrap">
                     <img class="banner-img-1" src="Header1.jpg" alt="Banner 1" onerror="this.style.opacity='0'">
                     <img class="banner-img-2" src="Header2.jpg" alt="Banner 2" onerror="this.style.opacity='0'">
                 </div>
             </div>
-
             <div class="text-center mb-5 fade-in">
                 <h2 class="cat-screen-title">Selecciona una opción</h2>
             </div>
@@ -2416,15 +2411,16 @@ function renderDashboard() {
     <div class="min-h-screen">
         <header class="bg-white shadow-lg sticky top-0 z-50 top-header">
             <div class="max-w-7xl mx-auto px-4 py-4">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-3">
+                <!-- CAMBIO 1: layout flex con título centrado -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2" style="min-width:80px;">
                         <button id="back-categories" class="btn-back" title="Volver a categorías"><i class="fas fa-chevron-left"></i></button>
-                        <div class="header-title-block">
-                            <h1 class="text-xl font-black">${state.selectedCategory ? escapeHtml(state.selectedCategory) : 'Todas las Vacantes'}</h1>
-                            <p class="text-sm">${displayVacancies.length} vacante${displayVacancies.length !== 1 ? 's' : ''} ${state.dateFilter ? 'filtradas' : 'disponibles'}</p>
-                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="header-title-block">
+                        <h1 class="text-xl font-black">${state.selectedCategory ? escapeHtml(state.selectedCategory) : 'Todas las Vacantes'}</h1>
+                        <p class="text-sm">${displayVacancies.length} vacante${displayVacancies.length !== 1 ? 's' : ''} ${state.dateFilter ? 'filtradas' : 'disponibles'}</p>
+                    </div>
+                    <div class="flex items-center gap-2" style="min-width:80px;justify-content:flex-end;">
                         ${state.isGuest ? `
                             <span class="guest-badge" style="font-size:11px;padding:5px 9px;"><i class="fas fa-user"></i> Invitado</span>
                             <button id="go-login" class="btn btn-outline" style="padding:7px 10px;font-size:12px;">Sesión</button>
@@ -2774,12 +2770,27 @@ function attachEvents() {
     // Dashboard / categories comunes
     document.getElementById('new-vacancy')?.addEventListener('click', () => { state.view = 'form'; resetJobForm(); clearAIData(); render(); });
     document.getElementById('calendar-btn')?.addEventListener('click', openCalendar);
-    document.getElementById('user-menu')?.addEventListener('click', () => { state.menuOpen = !state.menuOpen; render(); });
+
+    // CAMBIO 2: Toggle del menú de usuario
+    document.getElementById('user-menu')?.addEventListener('click', (e) => {
+        e.stopPropagation(); // evita que el click se propague al document
+        state.menuOpen = !state.menuOpen;
+        render();
+    });
+
     document.getElementById('logout')?.addEventListener('click', handleLogout);
     document.getElementById('delete-account')?.addEventListener('click', handleDeleteAccount);
     document.getElementById('go-login')?.addEventListener('click', () => { state.view = 'login'; render(); });
     document.getElementById('go-signup-from-empty')?.addEventListener('click', () => { state.view = 'signup'; render(); });
     document.getElementById('back-categories')?.addEventListener('click', () => { state.view = 'categories'; state.dateFilter = null; render(); });
+
+    // CAMBIO 3: Cerrar dropdown al hacer click fuera
+    if (state.menuOpen) {
+        // Pequeño delay para que no se cierre en el mismo click que lo abrió
+        setTimeout(() => {
+            document.addEventListener('click', _closeMenuOnOutsideClick, { once: true });
+        }, 10);
+    }
 
     // Categorías
     document.querySelectorAll('[data-category], [data-is-all]').forEach(btn => {
@@ -2826,7 +2837,6 @@ function attachEvents() {
                     : '<span class="req-empty-hint">Los requisitos aparecerán aquí</span>';
             }
         };
-        // Auto-formato fecha DD/MM/AAAA
         const dateInput = document.getElementById('publication_date');
         if (dateInput) {
             dateInput.addEventListener('input', (e) => {
@@ -2859,6 +2869,20 @@ function attachEvents() {
     document.getElementById('minimize-ai')?.addEventListener('click', () => { state.chatMinimized = !state.chatMinimized; render(); });
     document.getElementById('ai-img')?.addEventListener('change', handleAIImageUpload);
     document.getElementById('remove-ai-img')?.addEventListener('click', removeAIImage);
+}
+
+// ==================== CAMBIO 3: Función para cerrar menú al click fuera ====================
+function _closeMenuOnOutsideClick(e) {
+    const dropdown = document.getElementById('user-dropdown');
+    const userBtn  = document.getElementById('user-menu');
+    // Si el click fue dentro del dropdown o en el botón, no cerrar
+    if (dropdown && dropdown.contains(e.target)) return;
+    if (userBtn  && userBtn.contains(e.target))  return;
+    // Click fuera: cerrar menú
+    if (state.menuOpen) {
+        state.menuOpen = false;
+        render();
+    }
 }
 
 // ==================== INICIALIZACIÓN ====================
@@ -2919,11 +2943,10 @@ async function init() {
             }
         });
 
-        // OPT: Realtime solo invalida caché en lugar de recargar inmediatamente en cada evento
         supabaseClient
             .channel(ENDPOINTS.CHANNELS.VACANCIES)
             .on('postgres_changes', { event: '*', schema: 'public', table: ENDPOINTS.TABLES.VACANCIES }, async () => {
-                _vacanciesLastFetch = 0; // invalida caché
+                _vacanciesLastFetch = 0;
                 await loadVacancies(true);
                 if (state.view === 'dashboard' || state.view === 'categories') render();
             })
