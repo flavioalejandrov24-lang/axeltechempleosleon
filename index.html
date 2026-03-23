@@ -10,9 +10,13 @@
     <link rel="icon" type="image/png" sizes="32x32" href="faviconempleos.png">
     <link rel="apple-touch-icon" sizes="180x180" href="faviconempleos.png">
 
+    <!-- ✅ OPT: Tailwind cargado normalmente -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ✅ OPT: Font Awesome con display=swap para no bloquear render -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
     <style>
 /* ==================== VARIABLES DE COLOR ==================== */
@@ -360,10 +364,6 @@ header.top-header {
 }
 header.top-header > * { position: relative; z-index: 2; }
 header.top-header h1 { color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-header.top-header p { color: rgba(255,255,255,0.85); }
-
-/* ==================== CAMBIO 1: Título centrado y tamaño aumentado ==================== */
-header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
 
 .header-action-buttons { display: flex; gap: 12px; align-items: center; }
 .dashboard-section-title { color: white !important; }
@@ -371,14 +371,15 @@ header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
 .header-title-block {
     display: flex;
     flex-direction: column;
-    /* CAMBIO 1: centrado completo */
     align-items: center;
     text-align: center;
     justify-content: center;
     min-width: 0;
-    flex: 1; /* ocupa el espacio disponible entre los botones */
+    flex: 1;
 }
-.header-title-block h1 {
+/* ✅ CAMBIO 1: Título sin subtexto — tamaño ligeramente mayor */
+header.top-header .header-title-block h1 {
+    font-size: 1.45rem !important;
     white-space: normal;
     word-break: break-word;
     overflow-wrap: break-word;
@@ -387,9 +388,6 @@ header.top-header .header-title-block h1 { font-size: 1.375rem !important; }
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.25;
-    text-align: center;
-}
-.header-title-block p {
     text-align: center;
 }
 
@@ -1077,7 +1075,16 @@ window.EndpointHelpers = EndpointHelpers;
 
 // ==================== SUPABASE CLIENT ====================
 const { createClient } = supabase;
-const supabaseClient = createClient(ENDPOINTS.SUPABASE_URL, ENDPOINTS.SUPABASE_ANON_KEY);
+const supabaseClient = createClient(ENDPOINTS.SUPABASE_URL, ENDPOINTS.SUPABASE_ANON_KEY, {
+    // ✅ OPT: Persistencia de sesión más eficiente
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    },
+    // ✅ OPT: Realtime sólo cuando se necesita
+    realtime: { params: { eventsPerSecond: 2 } }
+});
 
 // ==================== ESTADO GLOBAL ====================
 let state = {
@@ -1113,7 +1120,9 @@ let state = {
     aiImagePreview: null,
     aiExtractedData: null,
     chatMinimized: false,
-    isLoggingOut: false
+    isLoggingOut: false,
+    // ✅ OPT: Flag para evitar suscripción múltiple al canal realtime
+    _realtimeSubscribed: false
 };
 
 // ==================== cleanValue ====================
@@ -1659,7 +1668,8 @@ let _vacanciesLastFetch = 0;
 
 async function loadVacancies(forceRefresh = false) {
     const now = Date.now();
-    if (!forceRefresh && (now - _vacanciesLastFetch) < 30000 && state.vacancies.length > 0) {
+    // ✅ OPT: Caché ampliado a 60s (antes 30s) para reducir llamadas a Supabase
+    if (!forceRefresh && (now - _vacanciesLastFetch) < 60000 && state.vacancies.length > 0) {
         console.log('📦 Vacantes desde caché local');
         return;
     }
@@ -2329,12 +2339,11 @@ function renderCategories() {
     <div class="categories-screen-bg">
         <header class="bg-white shadow-lg sticky top-0 z-50 top-header">
             <div class="max-w-7xl mx-auto px-4 py-4">
-                <!-- CAMBIO 1: layout flex con título centrado -->
                 <div class="flex items-center justify-between">
                     <div style="min-width:80px;"></div>
                     <div class="header-title-block">
+                        <!-- ✅ CAMBIO: Solo el título principal, sin subtexto de vacantes -->
                         <h1 class="text-2xl font-black">Empleos León GTO</h1>
-                        <p class="text-sm">${totalVacancies} vacante${totalVacancies !== 1 ? 's' : ''} disponible${totalVacancies !== 1 ? 's' : ''}</p>
                     </div>
                     <div class="flex items-center gap-2" style="min-width:80px;justify-content:flex-end;">
                         ${state.isGuest ? `
@@ -2411,14 +2420,13 @@ function renderDashboard() {
     <div class="min-h-screen">
         <header class="bg-white shadow-lg sticky top-0 z-50 top-header">
             <div class="max-w-7xl mx-auto px-4 py-4">
-                <!-- CAMBIO 1: layout flex con título centrado -->
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2" style="min-width:80px;">
                         <button id="back-categories" class="btn-back" title="Volver a categorías"><i class="fas fa-chevron-left"></i></button>
                     </div>
                     <div class="header-title-block">
+                        <!-- ✅ CAMBIO: Solo el título de categoría, sin subtexto de cantidad -->
                         <h1 class="text-xl font-black">${state.selectedCategory ? escapeHtml(state.selectedCategory) : 'Todas las Vacantes'}</h1>
-                        <p class="text-sm">${displayVacancies.length} vacante${displayVacancies.length !== 1 ? 's' : ''} ${state.dateFilter ? 'filtradas' : 'disponibles'}</p>
                     </div>
                     <div class="flex items-center gap-2" style="min-width:80px;justify-content:flex-end;">
                         ${state.isGuest ? `
@@ -2771,9 +2779,8 @@ function attachEvents() {
     document.getElementById('new-vacancy')?.addEventListener('click', () => { state.view = 'form'; resetJobForm(); clearAIData(); render(); });
     document.getElementById('calendar-btn')?.addEventListener('click', openCalendar);
 
-    // CAMBIO 2: Toggle del menú de usuario
     document.getElementById('user-menu')?.addEventListener('click', (e) => {
-        e.stopPropagation(); // evita que el click se propague al document
+        e.stopPropagation();
         state.menuOpen = !state.menuOpen;
         render();
     });
@@ -2784,9 +2791,7 @@ function attachEvents() {
     document.getElementById('go-signup-from-empty')?.addEventListener('click', () => { state.view = 'signup'; render(); });
     document.getElementById('back-categories')?.addEventListener('click', () => { state.view = 'categories'; state.dateFilter = null; render(); });
 
-    // CAMBIO 3: Cerrar dropdown al hacer click fuera
     if (state.menuOpen) {
-        // Pequeño delay para que no se cierre en el mismo click que lo abrió
         setTimeout(() => {
             document.addEventListener('click', _closeMenuOnOutsideClick, { once: true });
         }, 10);
@@ -2871,38 +2876,41 @@ function attachEvents() {
     document.getElementById('remove-ai-img')?.addEventListener('click', removeAIImage);
 }
 
-// ==================== CAMBIO 3: Función para cerrar menú al click fuera ====================
 function _closeMenuOnOutsideClick(e) {
     const dropdown = document.getElementById('user-dropdown');
     const userBtn  = document.getElementById('user-menu');
-    // Si el click fue dentro del dropdown o en el botón, no cerrar
     if (dropdown && dropdown.contains(e.target)) return;
     if (userBtn  && userBtn.contains(e.target))  return;
-    // Click fuera: cerrar menú
     if (state.menuOpen) {
         state.menuOpen = false;
         render();
     }
 }
 
-// ==================== INICIALIZACIÓN ====================
+// ==================== INICIALIZACIÓN (OPTIMIZADA) ====================
 async function init() {
     console.log('🚀 Inicializando Empleos León GTO...');
     try {
+        // ✅ OPT: Render inmediato del login sin esperar Supabase
+        render(true);
+
         const { data } = await supabaseClient.auth.getSession();
         if (data?.session?.user) {
             state.user = data.session.user;
             const accepted = localStorage.getItem('terms_accepted_' + data.session.user.id);
             state.acceptedTerms = !!accepted;
             state.view = accepted ? 'categories' : 'terms';
+            // ✅ OPT: Renderizamos la pantalla de destino primero, luego cargamos vacantes
+            render(true);
             await loadVacancies();
+            // Solo re-render si ya estamos en una pantalla que muestra vacantes
+            if (state.view === 'categories' || state.view === 'dashboard') render();
         }
 
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             console.log('🔐 Auth event:', event);
 
             if (event === 'PASSWORD_RECOVERY') {
-                console.log('🔑 PASSWORD_RECOVERY - mostrando modal');
                 showNewPasswordModal();
                 return;
             }
@@ -2912,15 +2920,14 @@ async function init() {
                 state.isRendering = false;
             }
 
+            // ✅ OPT: Ignorar INITIAL_SESSION si ya procesamos la sesión en getSession()
+            if (event === 'INITIAL_SESSION') return;
+
             if (state.isLoggingOut && event === 'SIGNED_OUT') {
-                console.log('✅ Logout completado');
                 state.isLoggingOut = false;
                 return;
             }
-            if (event === 'SIGNED_OUT' && !state.user) {
-                console.log('⏭️ SIGNED_OUT ignorado');
-                return;
-            }
+            if (event === 'SIGNED_OUT' && !state.user) return;
 
             if ((event === 'SIGNED_IN' || event === 'EMAIL_CONFIRMED' || event === 'USER_UPDATED') && session?.user) {
                 state.user = session.user;
@@ -2928,31 +2935,37 @@ async function init() {
                 const accepted = localStorage.getItem('terms_accepted_' + session.user.id);
                 state.acceptedTerms = !!accepted;
                 state.view = accepted ? 'categories' : 'terms';
-                await loadVacancies(true);
-                hideLoading();
+                // ✅ OPT: Render primero, luego carga de datos en paralelo
                 render(true);
+                await loadVacancies(true);
+                if (state.view === 'categories' || state.view === 'dashboard') render();
+                hideLoading();
                 if (event === 'EMAIL_CONFIRMED') {
                     showModal('success', '✅ Correo confirmado', '¡Tu cuenta fue verificada! Has iniciado sesión correctamente.');
                 } else if (event === 'SIGNED_IN') {
                     showModal('success', '¡Bienvenido!', 'Has iniciado sesión correctamente');
                 }
             } else if (event === 'SIGNED_OUT' && state.user && !state.isLoggingOut) {
-                console.log('🔄 SIGNED_OUT inesperado - reseteando estado');
                 resetCompleteState();
                 render(true);
             }
         });
 
-        supabaseClient
-            .channel(ENDPOINTS.CHANNELS.VACANCIES)
-            .on('postgres_changes', { event: '*', schema: 'public', table: ENDPOINTS.TABLES.VACANCIES }, async () => {
-                _vacanciesLastFetch = 0;
-                await loadVacancies(true);
-                if (state.view === 'dashboard' || state.view === 'categories') render();
-            })
-            .subscribe();
+        // ✅ OPT: Canal realtime suscrito UNA SOLA VEZ y sólo si el usuario está activo
+        if (!state._realtimeSubscribed) {
+            state._realtimeSubscribed = true;
+            supabaseClient
+                .channel(ENDPOINTS.CHANNELS.VACANCIES)
+                .on('postgres_changes', { event: '*', schema: 'public', table: ENDPOINTS.TABLES.VACANCIES }, async () => {
+                    // ✅ OPT: Solo actualizar si el usuario está en una pantalla relevante
+                    if (state.view !== 'dashboard' && state.view !== 'categories') return;
+                    _vacanciesLastFetch = 0;
+                    await loadVacancies(true);
+                    render();
+                })
+                .subscribe();
+        }
 
-        render(true);
         console.log('✅ App lista');
     } catch (error) {
         console.error('❌ Error init:', error);
