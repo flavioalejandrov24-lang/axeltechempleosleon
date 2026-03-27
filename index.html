@@ -2797,17 +2797,23 @@ function attachEvents() {
         }, 10);
     }
 
-    // Categorías
+// Categorías
     document.querySelectorAll('[data-category], [data-is-all]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             const isAll = btn.dataset.isAll === 'true';
             state.selectedCategory = isAll ? null : btn.dataset.category;
             state.dateFilter = null;
             state.view = 'dashboard';
+            // ✅ FIX: Si las vacantes no están cargadas aún, cargarlas antes de renderizar
+            if (state.vacancies.length === 0) {
+                showLoading();
+                await loadVacancies(true);
+                hideLoading();
+            }
             render();
         });
     });
-
+    
     document.getElementById('quick-terms-btn')?.addEventListener('click', () => { state.view = 'terms'; render(); });
 
     // Cards
