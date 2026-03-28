@@ -10,10 +10,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="faviconempleos.png">
     <link rel="apple-touch-icon" sizes="180x180" href="faviconempleos.png">
 
-    <!-- ✅ OPT: Tailwind cargado normalmente -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- ✅ OPT: Font Awesome con display=swap para no bloquear render -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -377,7 +375,6 @@ header.top-header h1 { color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
     min-width: 0;
     flex: 1;
 }
-/* ✅ CAMBIO 1: Título sin subtexto — tamaño ligeramente mayor */
 header.top-header .header-title-block h1 {
     font-size: 1.45rem !important;
     white-space: normal;
@@ -1076,13 +1073,11 @@ window.EndpointHelpers = EndpointHelpers;
 // ==================== SUPABASE CLIENT ====================
 const { createClient } = supabase;
 const supabaseClient = createClient(ENDPOINTS.SUPABASE_URL, ENDPOINTS.SUPABASE_ANON_KEY, {
-    // ✅ OPT: Persistencia de sesión más eficiente
     auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true
     },
-    // ✅ OPT: Realtime sólo cuando se necesita
     realtime: { params: { eventsPerSecond: 2 } }
 });
 
@@ -1121,7 +1116,6 @@ let state = {
     aiExtractedData: null,
     chatMinimized: false,
     isLoggingOut: false,
-    // ✅ OPT: Flag para evitar suscripción múltiple al canal realtime
     _realtimeSubscribed: false
 };
 
@@ -1665,14 +1659,23 @@ function handleAcceptTerms() {
 
 // ==================== VACANTES ====================
 let _vacanciesLastFetch = 0;
+// ✅ FIX 1: Flag anti-fetch concurrente — evita que dos llamadas simultáneas hagan doble petición a Supabase
+let _loadingVacancies = false;
 
+// ✅ FIX 2: loadVacancies con flag de concurrencia y caché inteligente
 async function loadVacancies(forceRefresh = false) {
+    // Si ya hay una carga en curso, no lanzar otra
+    if (_loadingVacancies) {
+        console.log('⏳ Ya hay una carga en curso, ignorando duplicado');
+        return;
+    }
     const now = Date.now();
-    // ✅ OPT: Caché ampliado a 60s (antes 30s) para reducir llamadas a Supabase
+    // Usar caché si los datos son frescos (menos de 60s) y no se fuerza recarga
     if (!forceRefresh && (now - _vacanciesLastFetch) < 60000 && state.vacancies.length > 0) {
         console.log('📦 Vacantes desde caché local');
         return;
     }
+    _loadingVacancies = true;
     console.log('📥 Cargando vacantes desde Supabase...');
     try {
         const { data, error } = await supabaseClient
@@ -1688,6 +1691,9 @@ async function loadVacancies(forceRefresh = false) {
     } catch (error) {
         console.error('❌ Error loading vacancies:', error);
         state.vacancies = []; state.filteredVacancies = [];
+    } finally {
+        // Siempre liberar el flag, incluso si hubo error
+        _loadingVacancies = false;
     }
 }
 
@@ -2342,7 +2348,6 @@ function renderCategories() {
                 <div class="flex items-center justify-between">
                     <div style="min-width:80px;"></div>
                     <div class="header-title-block">
-                        <!-- ✅ CAMBIO: Solo el título principal, sin subtexto de vacantes -->
                         <h1 class="text-2xl font-black">Empleos León GTO</h1>
                     </div>
                     <div class="flex items-center gap-2" style="min-width:80px;justify-content:flex-end;">
@@ -2425,7 +2430,6 @@ function renderDashboard() {
                         <button id="back-categories" class="btn-back" title="Volver a categorías"><i class="fas fa-chevron-left"></i></button>
                     </div>
                     <div class="header-title-block">
-                        <!-- ✅ CAMBIO: Solo el título de categoría, sin subtexto de cantidad -->
                         <h1 class="text-xl font-black">${state.selectedCategory ? escapeHtml(state.selectedCategory) : 'Todas las Vacantes'}</h1>
                     </div>
                     <div class="flex items-center gap-2" style="min-width:80px;justify-content:flex-end;">
@@ -2797,23 +2801,23 @@ function attachEvents() {
         }, 10);
     }
 
-// Categorías
+    // ✅ FIX 3: Categorías — render inmediato + carga silenciosa si faltan datos (sin spinner de pantalla completa)
     document.querySelectorAll('[data-category], [data-is-all]').forEach(btn => {
         btn.addEventListener('click', async () => {
             const isAll = btn.dataset.isAll === 'true';
             state.selectedCategory = isAll ? null : btn.dataset.category;
             state.dateFilter = null;
             state.view = 'dashboard';
-            // ✅ FIX: Si las vacantes no están cargadas aún, cargarlas antes de renderizar
-            if (state.vacancies.length === 0) {
-                showLoading();
-                await loadVacancies(true);
-                hideLoading();
-            }
+            // Mostrar dashboard de inmediato con lo que haya
             render();
+            // Si no hay vacantes y no hay carga en curso, cargar silenciosamente y re-renderizar
+            if (state.vacancies.length === 0 && !_loadingVacancies) {
+                await loadVacancies(true);
+                render();
+            }
         });
     });
-    
+
     document.getElementById('quick-terms-btn')?.addEventListener('click', () => { state.view = 'terms'; render(); });
 
     // Cards
@@ -2893,22 +2897,20 @@ function _closeMenuOnOutsideClick(e) {
     }
 }
 
-// ==================== INICIALIZACIÓN (OPTIMIZADA) ====================
+// ==================== INICIALIZACIÓN ====================
 async function init() {
     console.log('🚀 Inicializando Empleos León GTO...');
     try {
-        // ✅ Detectar acceso directo como invitado desde Ecosistema León GTO
         const _urlParams = new URLSearchParams(window.location.search);
         if (_urlParams.get('modo') === 'invitado') {
             console.log('👤 Acceso invitado via URL param');
             state.isGuest = true;
             state.view = 'categories';
             render(true);
-            loadVacancies(); // sin await — carga en segundo plano
+            loadVacancies();
             return;
         }
 
-        // ✅ OPT: Render inmediato del login sin esperar Supabase
         render(true);
 
         const { data } = await supabaseClient.auth.getSession();
@@ -2917,10 +2919,8 @@ async function init() {
             const accepted = localStorage.getItem('terms_accepted_' + data.session.user.id);
             state.acceptedTerms = !!accepted;
             state.view = accepted ? 'categories' : 'terms';
-            // ✅ OPT: Renderizamos la pantalla de destino primero, luego cargamos vacantes
             render(true);
             await loadVacancies();
-            // Solo re-render si ya estamos en una pantalla que muestra vacantes
             if (state.view === 'categories' || state.view === 'dashboard') render();
         }
 
@@ -2937,7 +2937,6 @@ async function init() {
                 state.isRendering = false;
             }
 
-            // ✅ OPT: Ignorar INITIAL_SESSION si ya procesamos la sesión en getSession()
             if (event === 'INITIAL_SESSION') return;
 
             if (state.isLoggingOut && event === 'SIGNED_OUT') {
@@ -2952,9 +2951,10 @@ async function init() {
                 const accepted = localStorage.getItem('terms_accepted_' + session.user.id);
                 state.acceptedTerms = !!accepted;
                 state.view = accepted ? 'categories' : 'terms';
-                // ✅ OPT: Render primero, luego carga de datos en paralelo
                 render(true);
-                await loadVacancies(true);
+                // ✅ FIX 4: Solo recargar si los datos son viejos o no existen — evita doble fetch al volver en Android
+                const necesitaRecargar = state.vacancies.length === 0 || (Date.now() - _vacanciesLastFetch) > 60000;
+                await loadVacancies(necesitaRecargar);
                 if (state.view === 'categories' || state.view === 'dashboard') render();
                 hideLoading();
                 if (event === 'EMAIL_CONFIRMED') {
@@ -2968,13 +2968,11 @@ async function init() {
             }
         });
 
-        // ✅ OPT: Canal realtime suscrito UNA SOLA VEZ y sólo si el usuario está activo
         if (!state._realtimeSubscribed) {
             state._realtimeSubscribed = true;
             supabaseClient
                 .channel(ENDPOINTS.CHANNELS.VACANCIES)
                 .on('postgres_changes', { event: '*', schema: 'public', table: ENDPOINTS.TABLES.VACANCIES }, async () => {
-                    // ✅ OPT: Solo actualizar si el usuario está en una pantalla relevante
                     if (state.view !== 'dashboard' && state.view !== 'categories') return;
                     _vacanciesLastFetch = 0;
                     await loadVacancies(true);
