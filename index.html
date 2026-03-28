@@ -1629,13 +1629,14 @@ async function handleDeleteAccount() {
     });
 }
 
+// ==================== FIX 1: handleGuestAccess con forceRefresh=true ====================
 async function handleGuestAccess() {
     console.log('👤 Acceso como invitado...');
     showLoading();
     try {
         state.isGuest = true;
         state.view = 'categories';
-        await loadVacancies();
+        await loadVacancies(true); // ✅ CORREGIDO: forzar recarga siempre
         console.log('✅ Acceso invitado. Vacantes:', state.vacancies.length);
         hideLoading();
         render();
@@ -1659,18 +1660,14 @@ function handleAcceptTerms() {
 
 // ==================== VACANTES ====================
 let _vacanciesLastFetch = 0;
-// ✅ FIX 1: Flag anti-fetch concurrente — evita que dos llamadas simultáneas hagan doble petición a Supabase
 let _loadingVacancies = false;
 
-// ✅ FIX 2: loadVacancies con flag de concurrencia y caché inteligente
 async function loadVacancies(forceRefresh = false) {
-    // Si ya hay una carga en curso, no lanzar otra
     if (_loadingVacancies) {
         console.log('⏳ Ya hay una carga en curso, ignorando duplicado');
         return;
     }
     const now = Date.now();
-    // Usar caché si los datos son frescos (menos de 60s) y no se fuerza recarga
     if (!forceRefresh && (now - _vacanciesLastFetch) < 60000 && state.vacancies.length > 0) {
         console.log('📦 Vacantes desde caché local');
         return;
@@ -1692,7 +1689,6 @@ async function loadVacancies(forceRefresh = false) {
         console.error('❌ Error loading vacancies:', error);
         state.vacancies = []; state.filteredVacancies = [];
     } finally {
-        // Siempre liberar el flag, incluso si hubo error
         _loadingVacancies = false;
     }
 }
@@ -2474,7 +2470,7 @@ function renderDashboard() {
                         <h3 class="text-xl font-bold text-white">No hay vacantes para esa fecha</h3>
                         <button onclick="clearDateFilter()" class="btn btn-cancel mt-4"><i class="fas fa-times mr-1"></i> Quitar Filtro</button>
                     </div>
-                ` : otherVacancies.length === 0 && !state.isGuest ? `
+                ` : otherVacancies.length === 0 && userVacancies.length > 0 ? `
                     <div class="text-center py-12">
                         <div class="text-6xl mb-4">🎉</div>
                         <h3 class="text-xl font-bold text-white">¡Eres el primero! Solo tú has publicado en esta categoría</h3>
@@ -2801,17 +2797,18 @@ function attachEvents() {
         }, 10);
     }
 
-    // ✅ FIX 3: Categorías — render inmediato + carga silenciosa si faltan datos (sin spinner de pantalla completa)
+    // ==================== FIX 2: Categorías — siempre recargar si datos tienen más de 30s o están vacíos ====================
     document.querySelectorAll('[data-category], [data-is-all]').forEach(btn => {
         btn.addEventListener('click', async () => {
             const isAll = btn.dataset.isAll === 'true';
             state.selectedCategory = isAll ? null : btn.dataset.category;
             state.dateFilter = null;
             state.view = 'dashboard';
-            // Mostrar dashboard de inmediato con lo que haya
+            // Render inmediato con lo que haya en memoria
             render();
-            // Si no hay vacantes y no hay carga en curso, cargar silenciosamente y re-renderizar
-            if (state.vacancies.length === 0 && !_loadingVacancies) {
+            // ✅ CORREGIDO: siempre recargar si datos son viejos (>30s) o no existen
+            const datosViejos = (Date.now() - _vacanciesLastFetch) > 30000;
+            if (!_loadingVacancies && (state.vacancies.length === 0 || datosViejos)) {
                 await loadVacancies(true);
                 render();
             }
@@ -2907,7 +2904,7 @@ async function init() {
             state.isGuest = true;
             state.view = 'categories';
             render(true);
-            loadVacancies();
+            loadVacancies(true); // ✅ forzar recarga también en acceso por URL
             return;
         }
 
@@ -2920,7 +2917,7 @@ async function init() {
             state.acceptedTerms = !!accepted;
             state.view = accepted ? 'categories' : 'terms';
             render(true);
-            await loadVacancies();
+            await loadVacancies(true); // ✅ forzar recarga en inicio de sesión existente
             if (state.view === 'categories' || state.view === 'dashboard') render();
         }
 
@@ -2952,9 +2949,7 @@ async function init() {
                 state.acceptedTerms = !!accepted;
                 state.view = accepted ? 'categories' : 'terms';
                 render(true);
-                // ✅ FIX 4: Solo recargar si los datos son viejos o no existen — evita doble fetch al volver en Android
-                const necesitaRecargar = state.vacancies.length === 0 || (Date.now() - _vacanciesLastFetch) > 60000;
-                await loadVacancies(necesitaRecargar);
+                await loadVacancies(true); // ✅ siempre forzar al iniciar sesión
                 if (state.view === 'categories' || state.view === 'dashboard') render();
                 hideLoading();
                 if (event === 'EMAIL_CONFIRMED') {
